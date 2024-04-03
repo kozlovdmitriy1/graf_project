@@ -1,4 +1,6 @@
 import numpy as np
+import sys
+import random
 
 
 import pygame
@@ -242,13 +244,119 @@ class DeleteVertexButton(pygame.sprite.Sprite):
             self.image = pygame.image.load('venv\\sprites\\delete_vertex_default.png')
 
 
+class LoadAdjacencyMatrixButton(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('venv\\sprites\\load_adjacency_matrix_default.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = 10
+        self.rect.y = 340
+
+    def update(self):
+        global graph, vertices, all_sprites
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            if held:
+                self.image = pygame.image.load('venv\\sprites\\load_adjacency_matrix_pressed.png')
+                if self.rect.collidepoint(pygame.mouse.get_pos()) and clicked:
+                    for _ in range(len(vertices)):
+                        vertices[-1].kill()
+                        del vertices[-1]
+                    s = int(input("enter the amount of vertices:"))
+                    print('input the adjacency matrix:')
+                    matrix = []
+                    for _ in range(s):
+                        matrix.append([int(c) for c in list(input()) if c.isnumeric()])
+                    matrix = np.array(matrix)
+                    print(matrix)
+                    graph = Graph(matrix, s, 0)
+                    for _ in range(s):
+                        all_sprites.add(Vertex(random.randrange(201, 880), random.randrange(0, 610), True))
+            else:
+                self.image = pygame.image.load('venv\\sprites\\load_adjacency_matrix_selected.png')
+        else:
+            self.image = pygame.image.load('venv\\sprites\\load_adjacency_matrix_default.png')
+
+
+class LoadAdjacencyListButton(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('venv\\sprites\\load_adjacency_list_default.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = 10
+        self.rect.y = 390
+
+    def update(self):
+        global graph, vertices, all_sprites
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            if held:
+                self.image = pygame.image.load('venv\\sprites\\load_adjacency_list_pressed.png')
+                if self.rect.collidepoint(pygame.mouse.get_pos()) and clicked:
+                    for _ in range(len(vertices)):
+                        vertices[-1].kill()
+                        del vertices[-1]
+                    s = int(input("enter the amount of vertices:"))
+                    print('input the adjacency list:')
+                    adj_list = []
+                    inp = input()[1:-1]
+                    elem_s = 0
+                    for i in range(1, len(inp)):
+                        if inp[i] == '[':
+                            elem_s = i
+                        elif inp[i] == ']':
+                            elem_full = [int(c) for c in inp[elem_s:i] if c.isnumeric()]
+                            elem_fin = []
+                            for j in range(len(elem_full)):
+                                if j % 2 == 0:
+                                    elem_fin.append((elem_full[j], elem_full[j + 1]))
+                            adj_list.append(elem_fin)
+                    graph = Graph(adj_list, s, 1)
+                    for _ in range(s):
+                        all_sprites.add(Vertex(random.randrange(201, 880), random.randrange(0, 610), True))
+            else:
+                self.image = pygame.image.load('venv\\sprites\\load_adjacency_list_selected.png')
+        else:
+            self.image = pygame.image.load('venv\\sprites\\load_adjacency_list_default.png')
+
+
+class LoadEdgeListButton(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('venv\\sprites\\load_edge_list_default.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = 10
+        self.rect.y = 440
+
+    def update(self):
+        global graph, vertices, all_sprites
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            if held:
+                self.image = pygame.image.load('venv\\sprites\\load_edge_list_pressed.png')
+                if self.rect.collidepoint(pygame.mouse.get_pos()) and clicked:
+                    for _ in range(len(vertices)):
+                        vertices[-1].kill()
+                        del vertices[-1]
+                    s = int(input("enter the amount of vertices:"))
+                    edge_list = []
+                    list_full = [int(c) for c in list(input('input the edge list:')) if c.isnumeric()]
+                    for i in range(len(list_full)):
+                        if i % 3 == 0:
+                            edge_list.append((list_full[i], list_full[i + 1], list_full[i + 2]))
+                    graph = Graph(edge_list, s, 2)
+                    for _ in range(s):
+                        all_sprites.add(Vertex(random.randrange(201, 880), random.randrange(0, 610), True))
+            else:
+                self.image = pygame.image.load('venv\\sprites\\load_edge_list_selected.png')
+        else:
+            self.image = pygame.image.load('venv\\sprites\\load_edge_list_default.png')
+
+
 vertices = []
 some_vertex_grabbed = False
 new_edge_start = -1
 
 
 class Vertex(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, existing_graph=False):
         global vertices, graph
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('venv\\sprites\\vertex.png')
@@ -260,7 +368,8 @@ class Vertex(pygame.sprite.Sprite):
         self.number = len(vertices)
         self.text = font.render(str(self.number + 1), True, (0, 0, 0))
         vertices.append(self)
-        graph.add_vertex()
+        if not existing_graph:
+            graph.add_vertex()
 
     def update(self):
         global some_vertex_grabbed, new_edge_start, graph, vertices, connect, delete
@@ -316,7 +425,7 @@ held = False
 graph = Graph([], 0, 2)
 
 
-tools = pygame.Surface((200, 920))
+tools = pygame.Surface((200, 650))
 get_adjacency_matrix_button = GetAdjacencyMatrixButton()
 all_sprites.add(get_adjacency_matrix_button)
 get_adjacency_list_button = GetAdjacencyListButton()
@@ -329,6 +438,12 @@ add_vertex_button = AddVertexButton()
 all_sprites.add(add_vertex_button)
 delete_vertex_button = DeleteVertexButton()
 all_sprites.add(delete_vertex_button)
+load_adjacency_matrix_button = LoadAdjacencyMatrixButton()
+all_sprites.add(load_adjacency_matrix_button)
+load_adjacency_list_button = LoadAdjacencyListButton()
+all_sprites.add(load_adjacency_list_button)
+load_edge_list_button = LoadEdgeListButton()
+all_sprites.add(load_edge_list_button)
 
 
 screen = pygame.display.set_mode((920, 650))
