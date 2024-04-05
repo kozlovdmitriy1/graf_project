@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 import random
 
 
@@ -21,6 +20,8 @@ class Graph:
                 for j in range(self.size):
                     if self.matrix[i, j] > 0:
                         self.edges.append((i, j, self.matrix[i, j]))
+                        if not directed:
+                            self.edges.append((j, i, self.matrix[j, i]))
         elif input_type == 1:
             self.size = size
             self.list = base
@@ -33,6 +34,8 @@ class Graph:
                 for j in range(self.size):
                     if self.matrix[i, j] != 0:
                         self.edges.append((i, j, self.matrix[i, j]))
+                        if not directed:
+                            self.edges.append((j, i, self.matrix[j, i]))
         elif input_type == 2:
             self.size = size
             self.edges = base
@@ -52,14 +55,18 @@ class Graph:
 
     def add_edge(self, ver1, ver2, length):
         self.edges.append((ver1, ver2, length))
+        if not directed:
+            self.edges.append((ver2, ver1, length))
         self.matrix[ver1, ver2] = length
         self.list[ver1].append((ver2, length))
-        self.matrix[ver2, ver1] = length
-        self.list[ver2].append((ver1, length))
+        if not directed:
+            self.matrix[ver2, ver1] = length
+            self.list[ver2].append((ver1, length))
 
     def remove_edge(self, ver1, ver2):
         self.matrix[ver1, ver2] = 0
-        self.matrix[ver2, ver1] = 0
+        if not directed:
+            self.matrix[ver2, ver1] = 0
         self.list = [[] for _ in range(self.size)]
         for i in range(self.size):
             for j in range(self.size):
@@ -84,6 +91,8 @@ class Graph:
             for j in range(self.size):
                 if self.matrix[i, j] > 0:
                     self.edges.append((i, j, self.matrix[i, j]))
+                    if not directed:
+                        self.edges.append((j, i, self.matrix[j, i]))
 
     def dijkstra(self, s, f):
         INF = 10 ** 10
@@ -267,7 +276,6 @@ class LoadAdjacencyMatrixButton(pygame.sprite.Sprite):
                     for _ in range(s):
                         matrix.append([int(c) for c in list(input()) if c.isnumeric()])
                     matrix = np.array(matrix)
-                    print(matrix)
                     graph = Graph(matrix, s, 0)
                     for _ in range(s):
                         all_sprites.add(Vertex(random.randrange(201, 880), random.randrange(0, 610), True))
@@ -295,9 +303,8 @@ class LoadAdjacencyListButton(pygame.sprite.Sprite):
                         vertices[-1].kill()
                         del vertices[-1]
                     s = int(input("enter the amount of vertices:"))
-                    print('input the adjacency list:')
                     adj_list = []
-                    inp = input()[1:-1]
+                    inp = input('input the adjacency list:')[1:-1]
                     elem_s = 0
                     for i in range(1, len(inp)):
                         if inp[i] == '[':
@@ -348,6 +355,85 @@ class LoadEdgeListButton(pygame.sprite.Sprite):
                 self.image = pygame.image.load('venv\\sprites\\load_edge_list_selected.png')
         else:
             self.image = pygame.image.load('venv\\sprites\\load_edge_list_default.png')
+
+
+class ToggleMultipleEdgesButton(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('venv\\sprites\\Off_default.png')
+        self.on = False
+        self.rect = self.image.get_rect()
+        self.rect.x = 136
+        self.rect.y = 510
+        self.text = font.render('multiple edges', True, (0, 0, 0))
+
+    def update(self):
+        screen.blit(self.text, (10, 522))
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            if self.on:
+                if held:
+                    self.image = pygame.image.load('venv\\sprites\\On_pressed.png')
+                    if clicked:
+                        self.on = False
+                else:
+                    self.image = pygame.image.load('venv\\sprites\\On_selected.png')
+            else:
+                if held:
+                    self.image = pygame.image.load('venv\\sprites\\Off_pressed.png')
+                    if clicked:
+                        self.on = True
+                else:
+                    self.image = pygame.image.load('venv\\sprites\\Off_selected.png')
+        else:
+            if self.on:
+                self.image = pygame.image.load('venv\\sprites\\On_default.png')
+            else:
+                self.image = pygame.image.load('venv\\sprites\\Off_default.png')
+
+
+directed = False
+
+
+class ToggleDirectedEdgesButton(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('venv\\sprites\\Off_default.png')
+        self.on = False
+        self.rect = self.image.get_rect()
+        self.rect.x = 136
+        self.rect.y = 560
+        self.text = font.render('directed edges', True, (0, 0, 0))
+
+    def update(self):
+        global directed, graph
+        screen.blit(self.text, (10, 572))
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            if self.on:
+                if held:
+                    self.image = pygame.image.load('venv\\sprites\\On_pressed.png')
+                    if clicked:
+                        self.on = False
+                        directed = False
+                        for i in range(graph.size):
+                            for j in range(graph.size):
+                                if graph.matrix[i, j] != 0:
+                                    graph.matrix[j, i] = graph.matrix[i, j]
+                                graph = Graph(graph.matrix, graph.size, 0)
+                else:
+                    self.image = pygame.image.load('venv\\sprites\\On_selected.png')
+            else:
+                if held:
+                    self.image = pygame.image.load('venv\\sprites\\Off_pressed.png')
+                    if clicked:
+                        self.on = True
+                        directed = True
+                else:
+                    self.image = pygame.image.load('venv\\sprites\\Off_selected.png')
+        else:
+            if self.on:
+                self.image = pygame.image.load('venv\\sprites\\On_default.png')
+            else:
+                self.image = pygame.image.load('venv\\sprites\\Off_default.png')
 
 
 vertices = []
@@ -444,6 +530,10 @@ load_adjacency_list_button = LoadAdjacencyListButton()
 all_sprites.add(load_adjacency_list_button)
 load_edge_list_button = LoadEdgeListButton()
 all_sprites.add(load_edge_list_button)
+toggle_multiple_edges_button = ToggleMultipleEdgesButton()
+all_sprites.add(toggle_multiple_edges_button)
+toggle_directed_edges_button = ToggleDirectedEdgesButton()
+all_sprites.add(toggle_directed_edges_button)
 
 
 screen = pygame.display.set_mode((920, 650))
@@ -463,9 +553,57 @@ while running:
     screen.fill((255, 255, 255))
     tools.fill((170, 190, 200))
     screen.blit(tools, (0, 0))
-    for e in graph.edges:
-        pygame.draw.line(screen, (60, 120, 255), [vertices[e[0]].rect.x + 20, vertices[e[0]].rect.y + 20],
-                         [vertices[e[1]].rect.x + 20, vertices[e[1]].rect.y + 20], 5)
+    if directed:
+        for e in graph.edges:
+            y1 = vertices[e[0]].rect.y + 20
+            x1 = vertices[e[0]].rect.x + 20
+            y2 = vertices[e[1]].rect.y + 20
+            x2 = vertices[e[1]].rect.x + 20
+            pygame.draw.line(screen, (60, 120, 255), [x1, y1], [x2, y2], 5)
+            if y1 - y2 == 0:
+                y1 += 1
+            k = (x1 - x2) / (y1 - y2)
+            if k == 0:
+                k = 0.01
+            # 400 = x^2 + y^2 = y^2 + (ky)^2 = y^2 + k^2y^2 = y^2(k^2 + 1)
+            # y^2 = 400/(k^2 + 1)
+            dy = (400/(k**2 + 1)) ** 0.5
+            dy2 = (1600 / (k ** 2 + 1)) ** 0.5
+            if y2 >= y1:
+                yb = y2 - dy2
+            else:
+                yb = y2 + dy2
+            xb = k * (yb - y1) + x1
+            # x = -1/k * y + a
+            # xb = -1/k * yb + a
+            a = 1/k * yb + xb
+            # x = -1/k * y + a
+            # (x - x2+k*dy)^2 + (y - y2+dy)^2 = 900
+            # (-1/k * y + a - x2+k*dy)^2 + (y - y2+dy)^2 = 900
+            # (-1/k * y + (a-x2+k*dy))^2 + (y + (-y2+dy))^2 = 900
+            # (-1/k)**2*y**2 + 2*(-1/k)*y*(a-x2+k*dy) + (a-x2+k*dy)**2 + y**2 + 2*y*(-y2+dy) + (-y2+dy)**2 - 900 = 0
+            # (-1/k)**2*y**2 + y**2 + 2*(-1/k)*y*(a-x2+k*dy) + 2*y*(-y2+dy) + (a-x2+k*dy)**2 + (-y2+dy)**2 - 900 = 0
+            # y**2((-1/k)**2 + 1) + y(2*(-1/k)*(a-x2+k*dy) + 2*(-y2+dy)) + (a-x2+k*dy)**2 + (-y2+dy)**2 - 900
+            if y2 >= y1:
+                da = (-1 / k) ** 2 + 1
+                db = 2 * (-1 / k) * (a - x2 + k * dy) + 2 * (-y2 + dy)
+                dc = (a - x2 + k * dy) ** 2 + (-y2 + dy) ** 2 - 625
+                D = db ** 2 - 4 * da * dc
+                y31 = (-db + D ** 0.5) / (2 * da)
+                y32 = (-db - D ** 0.5) / (2 * da)
+                pygame.draw.polygon(screen, (60, 120, 255), [[x2-k*dy, y2-dy], [-1/k*y31+a, y31], [-1/k*y32+a, y32]])
+            else:
+                da = (-1 / k) ** 2 + 1
+                db = 2 * (-1 / k) * (a - x2 - k * dy) + 2 * (-y2 - dy)
+                dc = (a - x2 - k * dy) ** 2 + (-y2 - dy) ** 2 - 625
+                D = db ** 2 - 4 * da * dc
+                y31 = (-db + D ** 0.5) / (2 * da)
+                y32 = (-db - D ** 0.5) / (2 * da)
+                pygame.draw.polygon(screen, (60, 120, 255), [[x2+k*dy, y2+dy], [-1/k*y31+a, y31], [-1/k*y32+a, y32]])
+    else:
+        for e in graph.edges:
+            pygame.draw.line(screen, (60, 120, 255), [vertices[e[0]].rect.x + 20, vertices[e[0]].rect.y + 20],
+                             [vertices[e[1]].rect.x + 20, vertices[e[1]].rect.y + 20], 5)
     all_sprites.draw(screen)
     all_sprites.update()
     pygame.display.flip()
