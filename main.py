@@ -365,7 +365,7 @@ class ToggleMultipleEdgesButton(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = 136
         self.rect.y = 510
-        self.text = font.render('multiple edges', True, (0, 0, 0))
+        self.text = font.render('numbered edges', True, (0, 0, 0))
 
     def update(self):
         screen.blit(self.text, (10, 522))
@@ -476,12 +476,13 @@ class Vertex(pygame.sprite.Sprite):
             if new_edge_start == -1:
                 new_edge_start = self.number
             else:
-                if graph.matrix[new_edge_start, self.number] == 0:
-                    graph.add_edge(new_edge_start, self.number, 1)
-                else:
-                    graph.remove_edge(new_edge_start, self.number)
-                self.image = pygame.image.load('venv\\sprites\\vertex.png')
-                self.image.set_colorkey((255, 255, 255))
+                if new_edge_start != self.number:
+                    if graph.matrix[new_edge_start, self.number] == 0:
+                        graph.add_edge(new_edge_start, self.number, 1)
+                    else:
+                        graph.remove_edge(new_edge_start, self.number)
+                    self.image = pygame.image.load('venv\\sprites\\vertex.png')
+                    self.image.set_colorkey((255, 255, 255))
                 vertices[new_edge_start].image = pygame.image.load('venv\\sprites\\vertex.png')
                 vertices[new_edge_start].image.set_colorkey((255, 255, 255))
                 new_edge_start = -1
@@ -530,8 +531,8 @@ load_adjacency_list_button = LoadAdjacencyListButton()
 all_sprites.add(load_adjacency_list_button)
 load_edge_list_button = LoadEdgeListButton()
 all_sprites.add(load_edge_list_button)
-toggle_multiple_edges_button = ToggleMultipleEdgesButton()
-all_sprites.add(toggle_multiple_edges_button)
+#toggle_multiple_edges_button = ToggleMultipleEdgesButton()
+#all_sprites.add(toggle_multiple_edges_button)
 toggle_directed_edges_button = ToggleDirectedEdgesButton()
 all_sprites.add(toggle_directed_edges_button)
 
