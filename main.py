@@ -310,11 +310,19 @@ class LoadAdjacencyListButton(pygame.sprite.Sprite):
                         if inp[i] == '[':
                             elem_s = i
                         elif inp[i] == ']':
-                            elem_full = [int(c) for c in inp[elem_s:i] if c.isnumeric()]
+                            # elem_full = [int(c) for c in inp[elem_s:i] if c.isnumeric()]
+                            elem_full = inp[elem_s + 1:i]
+                            print(elem_full)
                             elem_fin = []
-                            for j in range(len(elem_full)):
-                                if j % 2 == 0:
-                                    elem_fin.append((elem_full[j], elem_full[j + 1]))
+                            i1 = 0
+                            for i2 in range(len(elem_full)):
+                                if elem_full[i2] == '(':
+                                    i1 = i2
+                                elif elem_full[i2] == ')':
+                                    print(elem_full[i1+1:i2])
+                                    print([c for c in elem_full[i1+1:i2] if c != ' '])
+                                    edge = [int(c) for c in ''.join([c for c in elem_full[i1+1:i2] if c not in '()[] ']).split(',')]
+                                    elem_fin.append((edge[0], edge[1]))
                             adj_list.append(elem_fin)
                     graph = Graph(adj_list, s, 1)
                     for _ in range(s):
@@ -344,10 +352,12 @@ class LoadEdgeListButton(pygame.sprite.Sprite):
                         del vertices[-1]
                     s = int(input("enter the amount of vertices:"))
                     edge_list = []
-                    list_full = [int(c) for c in list(input('input the edge list:')) if c.isnumeric()]
-                    for i in range(len(list_full)):
-                        if i % 3 == 0:
-                            edge_list.append((list_full[i], list_full[i + 1], list_full[i + 2]))
+                    list_full = [c for c in list(input('input the edge list:')) if c not in '()[] ']
+                    if len(list_full) != 0:
+                        list_full = [int(c) for c in ''.join(list_full).split(',')]
+                        for i in range(len(list_full)):
+                            if i % 3 == 0:
+                                edge_list.append((list_full[i], list_full[i + 1], list_full[i + 2]))
                     graph = Graph(edge_list, s, 2)
                     for _ in range(s):
                         all_sprites.add(Vertex(random.randrange(201, 880), random.randrange(0, 610), True))
@@ -499,7 +509,7 @@ class Vertex(pygame.sprite.Sprite):
             self.kill()
         if self.number < 10:
             screen.blit(self.text, (self.rect.x + 15, self.rect.y + 14))
-        elif self.number < 100:
+        else:
             screen.blit(self.text, (self.rect.x + 10, self.rect.y + 14))
 
 
